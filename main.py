@@ -4,6 +4,8 @@
 from flask import Flask, render_template, request,jsonify
 from forms import ContactForm
 import pandas as pd
+from sqlalchemy import create_engine
+
 
 ###############################################
 #          Define flask app                   #
@@ -19,16 +21,14 @@ app.secret_key = 'dev fao football app'
 def get_contact():
     form = ContactForm()
     if request.method == 'POST':
-        # name = request.form["name"]
-        # email = request.form["email"]
-        # subject = request.form["subject"]
-        # message = request.form["message"]
-        print("i am in to post api")
-        print(request.get_json())
-        #res = pd.DataFrame({'name': name, 'email': email, 'subject': subject, 'message': message}, index=[0])
-        #res.to_csv('./contactusMessage.csv')
+        res = pd.DataFrame(dict(request.form), index=[0])
+        engine = create_engine("mysql+pymysql://{user}:{pw}@localhost/{db}"
+                               .format(user="root",
+                                       pw="mypass",
+                                       db="webforms"))
+        #query = """INSERT INTO contactus VALUES ("anil","anilgmail.com","hyderbad","banking",98765432)"""
+        res.to_sql('contactus', con=engine, if_exists='append', chunksize=1000,index=None)
         return jsonify(True),200
-        #return render_template('contact.html', form=form)
     else:
         return render_template('contact.html', form=form)
 
